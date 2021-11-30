@@ -48,20 +48,28 @@ contract ChainBank
    
    // account functions
    
-   function deposit(address addressHolder, unit256 amountWei) payable public
+   function payInterest(address recipient) payable private
    {
-       require(accounts[addressHolder]);
+       require(accounts[recipient]);
        
-       uint256 balanceOld = addressHolder.balance;
+       uint256 balanceOld = recipient.balance;
        
-       // TBD
+       recipient.transfer(msg.value);
        
-       emit BalanceChanged(addressHolder, balanceOld, addressHolder.balance);
+       emit BalanceChanged(recipient, balanceOld, recipient.balance);
    }
    
-   function spend(address addressAccount, address accountRecipient, uint256 amount) payable public
+   function spend(address payable accountRecipient) external 
    {
-       require(acccounts[addressAccount]);
+       require(accounts[msg.sender]);
+
+       uint256 balanceBefore = msg.sender.balance;
+       
+       // transfer to recipient 
+       
+       accountRecipient.transfer(msg.value);
+       
+       emit BalanceChanged(msg.sender, balanceBefore, msg.sender.balance);
    }
    
    
