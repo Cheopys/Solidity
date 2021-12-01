@@ -30,9 +30,11 @@ contract ChainBank
    
    // administrative functions
    
-   function addAccount(address addressNew, string nameNew) public isAdmin
+   function addAccount(address addressNew, string calldata nameNew) public isAdmin
    {
-       require(! accounts[addressNew]);
+       Account storage account = accounts[addressNew];
+       
+       require(isStringEmpty(account.name));
        
        accounts[addressNew] = Account(nameNew);
        emit AccountAdded(addressNew);
@@ -41,16 +43,16 @@ contract ChainBank
    
    function removeAccount(address addressRemove) public isAdmin
    {
-       require(accounts[addressRemove]);
+       require(isStringEmpty(accounts[addressRemove].name) == false);
        
        delete accounts[addressRemove];
    }
    
    // account functions
    
-   function payInterest(address recipient) payable private
+   function payInterest(address payable recipient) private
    {
-       require(accounts[recipient]);
+       require(isStringEmpty(accounts[recipient].name) == false);
        
        uint256 balanceOld = recipient.balance;
        
@@ -59,9 +61,9 @@ contract ChainBank
        emit BalanceChanged(recipient, balanceOld, recipient.balance);
    }
    
-   function spend(address payable accountRecipient) external 
+   function spend(address payable accountRecipient) public payable 
    {
-       require(accounts[msg.sender]);
+       require(isStringEmpty(accounts[msg.sender].name) == false);
 
        uint256 balanceBefore = msg.sender.balance;
        
@@ -72,7 +74,18 @@ contract ChainBank
        emit BalanceChanged(msg.sender, balanceBefore, msg.sender.balance);
    }
    
-   
+    function isStringEmpty(string memory str) private pure returns (bool)
+    {
+        bool empty = true;
+        bytes memory tempEmptyStringTest = bytes(str); // Uses memory
+        if (tempEmptyStringTest.length > 0) 
+        {
+            empty = false;
+        }
+        
+        return empty;
+    }
+
    struct Account
    {
        string name;
